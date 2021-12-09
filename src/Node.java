@@ -15,6 +15,7 @@ public class Node {
     private double maxX;
     private double minY;
     private double maxY;
+    private int amountOfDataBelow;
 
     public Node (int bucketSize, double minX, double maxX, double minY, double maxY) {
         bucket = new ArrayList<>();
@@ -34,12 +35,35 @@ public class Node {
         if (bucket.size() < bucketSize) {
             bucket.add(tuple);
         }
+        amountOfDataBelow++;
+    }
+
+    /**
+     * Deletes data from leaf.
+     * @param tuple     Tuple, data to delete
+     * @return          boolean, true if data was found and deleted, false if data wasn't found
+     */
+    public boolean deleteData(Tuple tuple) {
+        boolean removed = bucket.remove(tuple);
+        if (removed)
+            amountOfDataBelow--;
+        return removed;
     }
 
     /**
      * @return  true if bucket is at max capacity, false otherwise
      */
     public boolean isFull() { return bucketSize == bucket.size(); }
+
+    public boolean isEmpty() { return bucket.size() == 0; }
+
+    public int getBucketSize() {
+        return bucket.size();
+    }
+
+    public ArrayList<Tuple> getBucket() {
+        return bucket;
+    }
 
     /**
      * Returns true if node is leaf, false otherwise. Node is a leaf if it has no children
@@ -69,6 +93,19 @@ public class Node {
             children[depth][breadth].addData(data);
         }
         bucket.clear();
+    }
+
+    /**
+     * Makes node a leaf again by deleting all children
+     */
+    public void deleteChildren() {
+        for (int i = 0; i < children.length; i++) {
+            for (int j = 0; j < children[i].length; j++) {
+                if (children[i][j] != null)
+                    amountOfDataBelow -= children[i][j].getAmountOfDataBelow();
+            }
+        }
+        children = null;
     }
 
     /**
@@ -120,8 +157,13 @@ public class Node {
      * @param breadth   int
      */
     public void setChild(Node child, int depth, int breadth) {
-        if (children != null)
+        if (children != null) {
+            Node toReplace = children[depth][breadth];
+            if (toReplace != null)
+                amountOfDataBelow -= toReplace.getAmountOfDataBelow();
             children[depth][breadth] = child;
+            amountOfDataBelow += child.getAmountOfDataBelow();
+        }
     }
 
     public double getMinX() {
@@ -138,6 +180,10 @@ public class Node {
 
     public double getMaxY() {
         return maxY;
+    }
+
+    public int getAmountOfDataBelow() {
+        return amountOfDataBelow;
     }
 
     @Override
