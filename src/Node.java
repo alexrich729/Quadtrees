@@ -15,7 +15,6 @@ public class Node {
     private double maxX;
     private double minY;
     private double maxY;
-    private int amountOfDataBelow;
 
     public Node (int bucketSize, double minX, double maxX, double minY, double maxY) {
         bucket = new ArrayList<>();
@@ -35,7 +34,6 @@ public class Node {
         if (bucket.size() < bucketSize) {
             bucket.add(tuple);
         }
-        amountOfDataBelow++;
     }
 
     /**
@@ -44,10 +42,7 @@ public class Node {
      * @return          boolean, true if data was found and deleted, false if data wasn't found
      */
     public boolean deleteData(Tuple tuple) {
-        boolean removed = bucket.remove(tuple);
-        if (removed)
-            amountOfDataBelow--;
-        return removed;
+        return bucket.remove(tuple);
     }
 
     /**
@@ -99,12 +94,6 @@ public class Node {
      * Makes node a leaf again by deleting all children
      */
     public void deleteChildren() {
-        for (int i = 0; i < children.length; i++) {
-            for (int j = 0; j < children[i].length; j++) {
-                if (children[i][j] != null)
-                    amountOfDataBelow -= children[i][j].getAmountOfDataBelow();
-            }
-        }
         children = null;
     }
 
@@ -139,30 +128,36 @@ public class Node {
 
     /**
      * Returns child of respective quadrant
-     * @param depth     int, 1 if lower quadrant, 0 if upper
-     * @param breadth   int, 1 if right quadrant, 0 if left
+     * @param vertical     int, 1 if lower quadrant, 0 if upper
+     * @param horizontal   int, 1 if right quadrant, 0 if left
      * @return      Node
      */
-    public Node getChild(int depth, int breadth) {
+    public Node getChild(int vertical, int horizontal) {
         if (isLeaf()) {
             return null;
         }
-        return children[depth][breadth];
+        return children[vertical][horizontal];
     }
 
     /**
-     * Sets child of respective quadrant to given child
+     * Sets child of respective quadrant to given child, makes children null if all nodes inside are now null
      * @param child     Node new child
-     * @param depth     int
-     * @param breadth   int
+     * @param vertical     int
+     * @param horizontal   int
      */
-    public void setChild(Node child, int depth, int breadth) {
+    public void setChild(Node child, int vertical, int horizontal) {
         if (children != null) {
-            Node toReplace = children[depth][breadth];
-            if (toReplace != null)
-                amountOfDataBelow -= toReplace.getAmountOfDataBelow();
-            children[depth][breadth] = child;
-            amountOfDataBelow += child.getAmountOfDataBelow();
+            Node toReplace = children[vertical][horizontal];
+            children[vertical][horizontal] = child;
+            boolean allNull = true;
+            for (int i = 0; i < children.length; i++) {
+                for (int j = 0; j < children[i].length; j++) {
+                    if (children[i][j] != null)
+                        allNull = false;
+                }
+            }
+            if (allNull)
+                deleteChildren();
         }
     }
 
@@ -180,10 +175,6 @@ public class Node {
 
     public double getMaxY() {
         return maxY;
-    }
-
-    public int getAmountOfDataBelow() {
-        return amountOfDataBelow;
     }
 
     @Override
