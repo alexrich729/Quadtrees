@@ -1,9 +1,13 @@
-import java.util.Objects;
-
+/**
+ * Tuple representing data being stored in Quadtree. Can easily modify to hold whatever data one wants, as long as x and
+ * y are kept, as well as search in Quadtree class is modified.
+ *
+ * @author alexrich
+ */
 public class Tuple {
-    private String name;
-    private double x;
-    private double y;
+    private String name;        // name of data
+    private double x;           // x loc of data
+    private double y;           // y loc of data
 
     public Tuple(String name, double x, double y) {
         this.name = name;
@@ -19,6 +23,10 @@ public class Tuple {
         return y;
     }
 
+    public String getName() {
+        return name;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -27,11 +35,6 @@ public class Tuple {
         return Double.compare(tuple.getX(), getX()) == 0 &&
                 Double.compare(tuple.getY(), getY()) == 0 &&
                 name.equals(tuple.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, getX(), getY());
     }
 
     @Override

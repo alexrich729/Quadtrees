@@ -1,20 +1,20 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
- * Object representing the nodes used in Quadtree.
+ * Object representing a node used in Quadtree.
  *
  * @author alexrich
  */
 
 public class Node {
-    private ArrayList<Tuple> bucket;
-    private int bucketSize;
-    private Node[][] children;
-    private double minX;
-    private double maxX;
-    private double minY;
-    private double maxY;
+    private ArrayList<Tuple> bucket;    // contains all data held in node if node is leaf
+    private int bucketSize;             // how much data the node can hold
+    /** this can be null to represent that node is leaf */
+    private Node[][] children;          // holds four children that have four sub-quadrants of node
+    private double minX;                // minimum x value of node's quadrant
+    private double maxX;                // maximum x value of node's quadrant
+    private double minY;                // minimum y value of node's quadrant
+    private double maxY;                // maximum y value of node's quadrant
 
     public Node (int bucketSize, double minX, double maxX, double minY, double maxY) {
         bucket = new ArrayList<>();
@@ -52,10 +52,6 @@ public class Node {
 
     public boolean isEmpty() { return bucket.size() == 0; }
 
-    public int getBucketSize() {
-        return bucket.size();
-    }
-
     public ArrayList<Tuple> getBucket() {
         return bucket;
     }
@@ -72,20 +68,20 @@ public class Node {
      * Creates four new children and moves all data in node to children
      */
     public void addChildren() {
-        children = new Node[2][2];      // 2d array of size of 4 to represent the four sub-quadrants
+        children = new Node[2][2];      // 2d array of size of total size 4 to represent the four sub-quadrants
         for (int i = 0; i < bucket.size(); i++) {
             Tuple data = bucket.get(i);
-            int depth = 0;
-            int breadth = 0;
+            int vertical = 0;
+            int horizontal = 0;
             if (data.getX() >= (maxX + minX) / 2)
-                breadth = 1;
+                horizontal = 1;
             if (data.getY() >= (maxY + minY) / 2)
-                depth = 1;
+                vertical = 1;
 
-            if (children[depth][breadth] == null) {
-                children[depth][breadth] = createNewChild(depth, breadth);
+            if (children[vertical][horizontal] == null) {
+                children[vertical][horizontal] = createNewChild(vertical, horizontal);
             }
-            children[depth][breadth].addData(data);
+            children[vertical][horizontal].addData(data);
         }
         bucket.clear();
     }
@@ -147,7 +143,6 @@ public class Node {
      */
     public void setChild(Node child, int vertical, int horizontal) {
         if (children != null) {
-            Node toReplace = children[vertical][horizontal];
             children[vertical][horizontal] = child;
             boolean allNull = true;
             for (int i = 0; i < children.length; i++) {

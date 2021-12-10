@@ -1,6 +1,10 @@
+import java.util.ArrayList;
+
 /**
  * Implmentation of a Quadtree. Find more information about this data structure that helps with spacial indexing here:
  * https://medium.com/@waleoyediran/spatial-indexing-with-quadtrees-b998ae49336
+ *
+ * Data searched for, inserted, or deleted must have location within original quadrant's size
  *
  * @author alexrich
  */
@@ -10,66 +14,12 @@ public class Quadtree {
     private final int WIDTH;         // width of starting quadrant
     private final int HEIGHT;        // height of final quadrant
     private Node root;               // root of tree
-    private int count;
 
     public Quadtree(int bucketSize, int width, int height) {
         BUCKET_SIZE = bucketSize;
         WIDTH = width;
         HEIGHT = height;
         root = null;
-    }
-
-    /* For testing purposes only */
-    public static void main(String[] args) {
-        Double eX = Math.random() * 1000;
-        Double fX = Math.random() * 1000;
-        Double gX = Math.random() * 1000;
-        Double eY = Math.random() * 1000;
-        Double fY = Math.random() * 1000;
-        Double gY = Math.random() * 1000;
-        Quadtree quadtree = new Quadtree(2, 1000, 1000);
-        quadtree.insert("A", 69, 420);
-        quadtree.insert(new Tuple("B", 333, 69));
-        quadtree.insert(new Tuple("C", 1, 2));
-        quadtree.insert("D", Math.random() * 1000, Math.random() * 1000);
-        quadtree.insert(new Tuple("E", eX, eY));
-        quadtree.insert(new Tuple("F", fX, fY));
-        quadtree.insert("G", gX, gY);
-        quadtree.insert(new Tuple("H", Math.random() * 1000, Math.random() * 1000));
-        quadtree.insert(new Tuple("I", Math.random() * 1000, Math.random() * 1000));
-        quadtree.insert("J", Math.random() * 1000, Math.random() * 1000);
-        quadtree.insert(new Tuple("K", Math.random() * 1000, Math.random() * 1000));
-        quadtree.insert(new Tuple("L", Math.random() * 1000, Math.random() * 1000));
-        quadtree.insert("M", Math.random() * 1000, Math.random() * 1000);
-        quadtree.insert(new Tuple("N", Math.random() * 1000, Math.random() * 1000));
-        quadtree.insert(new Tuple("O", Math.random() * 1000, Math.random() * 1000));
-        quadtree.insert("P", Math.random() * 1000, Math.random() * 1000);
-        quadtree.insert(new Tuple("Q", Math.random() * 1000, Math.random() * 1000));
-        quadtree.insert(new Tuple("R", Math.random() * 1000, Math.random() * 1000));
-
-        /*
-        quadtree.delete("A", 69, 420);
-        quadtree.delete(new Tuple("B", 333, 69));
-        quadtree.delete(new Tuple("C", 1, 2));
-
-         */
-
-
-        quadtree.insert("S", Math.random() * 1000, Math.random() * 1000);
-        quadtree.insert(new Tuple("T", Math.random() * 1000, Math.random() * 1000));
-        quadtree.insert(new Tuple("U", Math.random() * 1000, Math.random() * 1000));
-        quadtree.insert("V", Math.random() * 1000, Math.random() * 1000);
-        quadtree.insert(new Tuple("W", Math.random() * 1000, Math.random() * 1000));
-        quadtree.insert(new Tuple("X", Math.random() * 1000, Math.random() * 1000));
-        quadtree.insert("Y", Math.random() * 1000, Math.random() * 1000);
-        quadtree.insert(new Tuple("Z", Math.random() * 1000, Math.random() * 1000));
-
-        quadtree.delete("E", eX, eY);
-        quadtree.delete(new Tuple("F", fX, fY));
-        quadtree.delete(new Tuple("G", gX, gY));
-
-        quadtree.printTree(quadtree.root);
-        System.out.println(quadtree.count);
     }
 
     /**
@@ -196,22 +146,41 @@ public class Quadtree {
         }
     }
 
+    /**
+     * Finds data name with location in quadtree.
+     * @param x     double of x loc
+     * @param y     double of y loc
+     * @return      String - name of data at loc or empty string if no data found
+     */
+    public String search(double x, double y) {
+        return recursiveSearch(root, x, y);
+    }
 
-    /* for testing purposes only */
-    public void printTree(Node node) {
-        Node[][] children = node.getChildren();
+    /**
+     * Calls child with the correct quadrant unless given node is null or a leaf. If node is leaf, looks for data with given
+     * location and returns its string and empty string if not found.
+     * @param node      Node to look for data
+     * @param x         double x of loc
+     * @param y
+     * @return
+     */
+    private String recursiveSearch(Node node, double x, double y) {
+        if (node == null)
+            return "";
         if (node.isLeaf()) {
-            System.out.println(node);
-            count++;
-        }
-        if (children != null) {
-            for (int i = 0; i <= 1; i++) {
-                for (int j = 0; j <= 1; j++) {
-                    if (children[i][j] != null) {
-                        printTree(children[i][j]);
-                    }
-                }
+            ArrayList<Tuple> data = node.getBucket();
+            for (int i = 0; i < data.size(); i++) {
+                if (Double.compare(x, data.get(i).getX()) == 0 && Double.compare(y,data.get(i).getY()) == 0)
+                    return data.get(i).getName();
             }
+            return "";
         }
+        int vertical = 0;   // 0 if data is upper quadrant of children, 1 if in lower
+        int horizontal = 0; // 0 if data is left quadrant of children, 1 if in right
+        if (x >= (node.getMaxX() + node.getMinX()) / 2)
+            horizontal = 1;
+        if (y >= (node.getMaxY() + node.getMinY()) / 2)
+            vertical = 1;
+        return recursiveSearch(node.getChild(vertical, horizontal), x, y);
     }
 }
